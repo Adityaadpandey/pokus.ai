@@ -98,6 +98,29 @@ Agent: [Researches transport, accommodations, dining, generates complete itinera
 ```
 
 
+## ⚖️ Assumptions & Trade-offs
+
+### Assumptions
+- **Single Instance Deployment**: The architecture uses `AsyncLocalStorage` for session isolation, which is designed for a single server instance. Horizontal scaling would require a distributed state store (e.g., Redis).
+- **In-Memory State**: Conversation history and agent state are stored in memory. A server restart clears all active sessions.
+- **Trusted Environment**: The application currently has no authentication layer. It assumes usage in a controlled or local environment.
+- **Connectivity**: Requires stable internet access for OpenAI and Google Search API calls.
+
+### Trade-offs
+- **WebSocket over REST**: Chosen for real-time, bi-directional streaming of logs and partial responses. *Trade-off*: Harder to load balance and cache compared to stateless REST endpoints.
+- **Simulated Actions**: "Pharmacy Calls" are simulated for demonstration safety and cost. *Trade-off*: Real-world utility is limited without actual VoIP integration (e.g., Twilio).
+- **Client-Side Coupling**: The frontend directly connects to a specific WebSocket port. *Trade-off*: Simplified dev setup but requires configuration changes for production deployment behind reverse proxies.
+
+### Agent-Specific Constraints
+
+#### 🏥 Medicine Finder
+- **Real-time Inventory**: Assumes stock availability based on search snippets or simulation. *Trade-off*: Does not connect to live pharmacy ERP systems (e.g., Apollo/MedPlus backend) for guaranteed stock.
+- **Geocoding**: Relies on naive location string matching. *Trade-off*: May differ from precise GPS coordinate-based routing.
+
+#### ✈️ Travel Planner
+- **Pricing Data**: Extracts pricing from search snippets (Google Search). *Trade-off*: Prices are indicative and not guaranteed bookable rates (no GDS/Amadeus integration).
+- **Sequential Reasoning**: Intentionally enforces a step-by-step workflow (Transport → Hotel → Activities). *Trade-off*: Slower execution time compared to parallel fetching, but ensures higher coherence and context retention.
+
 ## 🤝 Contributing
 
 1. Fork the repository
