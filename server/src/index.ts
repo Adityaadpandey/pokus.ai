@@ -1,9 +1,9 @@
 import "dotenv/config";
 
 import { OpenAIConversationsSession, run } from '@openai/agents';
-import * as readline from 'readline';
+import { WebSocket, WebSocketServer } from 'ws';
 import { coordinatorAgent } from './agents/coordinator';
-import { logger } from './utils/logger';
+import { logger, runWithLogCallback } from './utils/logger';
 
 class AgentRunner {
     private session: OpenAIConversationsSession;
@@ -28,59 +28,92 @@ class AgentRunner {
     }
     reset(): void {
         this.session = new OpenAIConversationsSession();
-        console.log("\n[🔄 SYSTEM] Conversation reset. Starting fresh.");
+        console.log("\n[SYSTEM] Conversation reset. Starting fresh.");
     }
 }
 async function main() {
     console.log("\n" + "=".repeat(70));
-    console.log("🌐 MODULAR AGENT SYSTEM (Refactored)");
+    console.log("🌐 MODULAR AGENT SYSTEM (WebSocket Server)");
     console.log("=".repeat(70));
-    // Configuration check
-    const hasOpenAI = !!process.env.OPENAI_API_KEY;
-    if (!hasOpenAI) {
-        logger.error("OPENAI_API_KEY is required in .env");
+    if (!process.env.OPENAI_API_KEY) {
         process.exit(1);
     }
-    // Google keys are MANDATORY now
-    const hasGoogle = !!(process.env.GOOGLE_SEARCH_API_KEY && process.env.GOOGLE_SEARCH_CX);
-    if (!hasGoogle) {
-        logger.error("❌ CRITICAL: Google Search API keys (GOOGLE_SEARCH_API_KEY, GOOGLE_SEARCH_CX) not found in .env");
-        logger.error("The system is in STRICT REAL DATA mode. Mock data is disabled.");
-        logger.error("Please add valid keys to continue.");
+    if (!process.env.GOOGLE_SEARCH_API_KEY || !process.env.GOOGLE_SEARCH_CX) {
         process.exit(1);
-    } else {
-        logger.info("✅ Google Search keys found. Running in REAL SEARCH MODE.");
     }
-    const runner = new AgentRunner();
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    console.log("\n💡 COMMANDS: 'reset' to clear history, 'exit' to quit.\n");
-    const askQuestion = () => {
-        rl.question("\n💬 You: ", async (input) => {
-            const trimmed = input.trim();
-            if (['exit', 'quit'].includes(trimmed.toLowerCase())) {
-                console.log("\n👋 Goodbye!\n");
-                rl.close();
-                return;
+
+
+    const wss = new WebSocketServer({ port: 8080 });
+
+    console.log("🚀 WebSocket server started on port 8080");
+
+    wss.on('connection', (ws: WebSocket) => {
+        console.log('Client connected');
+
+        // Instantiate a new runner for THIS connection (creates a new session)
+        const runner = new AgentRunner();
+
+        // We'll define a function that sends to THIS ws.
+        const sendLog = (type: string, message: string, agentName?: string) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'log',
+                    logType: type,
+                    content: message,
+                    agentName
+                }));
             }
-            if (trimmed.toLowerCase() === 'reset') {
-                runner.reset();
-                askQuestion();
-                return;
-            }
-            if (!trimmed) {
-                askQuestion();
-                return;
-            }
-            await runner.chat(trimmed);
-            askQuestion();
+        };
+
+        // Send a welcome message
+        ws.send(JSON.stringify({
+            type: 'system',
+            content: 'Connected to Agent Server (Isolated Session)'
+        }));
+
+        ws.on('message', async (message: string) => {
+            // Wrap the entire message processing in the log context for THIS user
+            runWithLogCallback(sendLog, async () => {
+                try {
+                    const data = JSON.parse(message.toString());
+
+                    if (data.type === 'chat') {
+                        const response = await runner.chat(data.content);
+                        if (ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({
+                                type: 'chat',
+                                content: response
+                            }));
+                        }
+                    } else if (data.type === 'reset') {
+                        runner.reset();
+                        if (ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({
+                                type: 'system',
+                                content: 'Conversation history reset.'
+                            }));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error processing message:', error);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            content: 'Failed to process message'
+                        }));
+                    }
+                }
+            });
         });
-    };
-    askQuestion();
+
+        ws.on('close', () => {
+            console.log('Client disconnected');
+        });
+    });
 }
+
 if (require.main === module) {
     main().catch(console.error);
 }
+
 export { AgentRunner, main };

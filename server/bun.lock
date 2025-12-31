@@ -7,9 +7,11 @@
         "@openai/agents": "^0.3.7",
         "axios": "^1.13.2",
         "dotenv": "^17.2.3",
+        "ws": "^8.18.3",
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/ws": "^8.18.1",
       },
       "peerDependencies": {
         "typescript": "^5",
