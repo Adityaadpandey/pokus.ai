@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@openai/agents": "^0.3.7",
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3"
+  }
+}
