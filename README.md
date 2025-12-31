@@ -63,6 +63,8 @@ Create a `.env` file in the `server` directory:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_SEARCH_CX=your_google_search_cx_here
+GOOGLE_SEARCH_API_KEY=your_google_search_api_key_here
 ```
 
 ## 🚀 Usage
@@ -132,11 +134,6 @@ Agent: [Researches transport, accommodations, dining, generates complete itinera
 ## 📄 License
 
 This project is open source. See the repository for license details.
-
----
-
-**Repository:** [https://github.com/Adityaadpandey/pokus.ai](https://github.com/Adityaadpandey/pokus.ai)
-
 
 ---
 
