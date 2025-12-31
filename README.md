@@ -23,10 +23,7 @@ A multi-agent AI system featuring two specialized assistants: a **Medicine Finde
 
 ## 🏗️ Architecture
 
-```
-![alt](./image.png)
-
-```
+![Architecture](./image.png)
 
 ## 🛠️ Tech Stack
 
@@ -100,32 +97,6 @@ User: Plan a 3-day trip from New York to Boston
 Agent: [Researches transport, accommodations, dining, generates complete itinerary]
 ```
 
-## 📁 Project Structure
-
-```
-pokus.ai/
-├── server/
-│   ├── src/
-│   │   ├── index.ts              # Server entry point
-│   │   ├── agents/
-│   │   │   ├── coordinator.ts    # Routes requests to specialists
-│   │   │   ├── medicine.ts       # Medicine finder agent
-│   │   │   └── travel.ts         # Travel planner agent
-│   │   ├── tools/
-│   │   │   ├── medicineTools.ts  # Pharmacy search tools
-│   │   │   └── travelTools.ts    # Transport/accommodation tools
-│   │   └── services/
-│   │       ├── searchService.ts  # External API integration
-│   │       └── travelService.ts  # Travel data searches
-│   └── package.json
-├── frontend/
-│   ├── app/
-│   │   └── page.tsx              # Main page
-│   ├── components/
-│   │   └── AgentChat.tsx         # Chat interface
-│   └── package.json
-└── README.md
-```
 
 ## 🤝 Contributing
 
@@ -142,3 +113,8 @@ This project is open source. See the repository for license details.
 ---
 
 **Repository:** [https://github.com/Adityaadpandey/pokus.ai](https://github.com/Adityaadpandey/pokus.ai)
+
+
+---
+
+<h2 align="center"> Made with ❤️ using <strong>NOVA</strong><br> by <a href="https://adpandey.com">Aditya</a> </h2>
