@@ -3,12 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    Collapsible,
-    CollapsibleTrigger
+  Collapsible,
+  CollapsibleTrigger
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Activity, CheckCircle2, ChevronDown, ChevronRight, RefreshCw, Send, Terminal } from "lucide-react";
+import { Activity, CheckCircle2, RefreshCw, Send, Terminal } from "lucide-react";
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -127,11 +127,7 @@ export function AgentChat() {
         <div className="flex items-center gap-2">
             <Collapsible open={isLogsOpen} onOpenChange={setIsLogsOpen}>
                 <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs text-muted-foreground">
-                        <Activity className="w-3.5 h-3.5" />
-                        {isLogsOpen ? 'Hide Logs' : 'Show Logs'}
-                        {isLogsOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                    </Button>
+
                 </CollapsibleTrigger>
             </Collapsible>
            <Button variant="outline" size="sm" className="h-8 w-8 p-0 ml-1" onClick={resetConversation} title="Reset">

@@ -10,15 +10,42 @@ class AgentRunner {
     constructor() {
         this.session = new OpenAIConversationsSession();
     }
-    async chat(userMessage: string): Promise<string> {
+    async chat(userMessage: string, onToken?: (token: string) => void): Promise<string> {
         logger.user(userMessage);
         logger.activeAgent(coordinatorAgent.name);
         try {
+
             const result = await run(coordinatorAgent, userMessage, {
                 session: this.session,
-                maxTurns: 15 // Check for loops
+                maxTurns: 15,
+                stream: true
             });
-            const assistantMessage = result.finalOutput || "I'm not sure how to respond to that.";
+
+            let assistantMessage = "";
+
+
+            for await (const chunk of result) {
+                if (typeof chunk === 'string') {
+                    assistantMessage += chunk;
+                    if (onToken) onToken(chunk);
+                }
+                else if (chunk && typeof chunk === 'object' && 'delta' in chunk) {
+                    const delta = (chunk as any).delta;
+                    if (delta?.content) {
+                        const token = delta.content;
+                        assistantMessage += token;
+                        if (onToken) onToken(token);
+                    }
+                }
+
+            }
+
+            if (!assistantMessage && (result as any).finalOutput) {
+                assistantMessage = (result as any).finalOutput;
+
+            }
+
+            assistantMessage = assistantMessage || "I'm not sure how to respond to that.";
             logger.agent("SYSTEM", assistantMessage);
             return assistantMessage;
         } catch (error: any) {
@@ -50,10 +77,8 @@ async function main() {
     wss.on('connection', (ws: WebSocket) => {
         console.log('Client connected');
 
-        // Instantiate a new runner for THIS connection (creates a new session)
         const runner = new AgentRunner();
 
-        // We'll define a function that sends to THIS ws.
         const sendLog = (type: string, message: string, agentName?: string) => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -65,20 +90,28 @@ async function main() {
             }
         };
 
-        // Send a welcome message
         ws.send(JSON.stringify({
             type: 'system',
-            content: 'Connected to Agent Server (Isolated Session)'
+            content: 'Connected to Agent Server'
         }));
 
         ws.on('message', async (message: string) => {
-            // Wrap the entire message processing in the log context for THIS user
             runWithLogCallback(sendLog, async () => {
                 try {
                     const data = JSON.parse(message.toString());
 
                     if (data.type === 'chat') {
-                        const response = await runner.chat(data.content);
+                        const sendToken = (token: string) => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(JSON.stringify({
+                                    type: 'chat_delta',
+                                    content: token
+                                }));
+                            }
+                        };
+
+                        const response = await runner.chat(data.content, sendToken);
+
                         if (ws.readyState === WebSocket.OPEN) {
                             ws.send(JSON.stringify({
                                 type: 'chat',
