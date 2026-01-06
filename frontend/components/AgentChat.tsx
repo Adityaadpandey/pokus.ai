@@ -30,6 +30,7 @@ export function AgentChat() {
   const [isLogsOpen, setIsLogsOpen] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  const text = input;
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
 
@@ -110,6 +111,7 @@ export function AgentChat() {
   // Helper to group logs if they are sequential (optional optimization, but let's keep it simple first)
 
   return (
+    <>
     <Card className="w-full max-w-4xl mx-auto h-[750px] flex flex-col shadow-2xl border-t-0 rounded-xl overflow-hidden bg-background">
       <CardHeader className="flex flex-row items-center justify-between py-3 px-6 border-b bg-muted/30">
         <div className="flex items-center gap-3">
@@ -242,5 +244,18 @@ export function AgentChat() {
         </div>
       </CardFooter>
     </Card>
+
+    <p>
+        {text}
+        <Button
+          onClick={(e) => {
+
+            setInput("Nice")
+          }}
+        >
+          X
+        </Button>
+    </p>
+    </>
   );
 }
